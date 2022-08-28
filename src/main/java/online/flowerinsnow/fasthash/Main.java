@@ -1,11 +1,11 @@
 package online.flowerinsnow.fasthash;
 
-import online.flowerinsnow.fasthash.util.HashUtils;
+import online.flowerinsnow.fasthash.util.FileUtils;
+import online.flowerinsnow.fasthash.util.RegexUtils;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.security.NoSuchAlgorithmException;
+import java.nio.file.Path;
+import java.util.regex.Pattern;
 
 public class Main {
     public static void main(String[] args) {
@@ -19,39 +19,29 @@ public class Main {
         long start = System.currentTimeMillis();
 
         for (int i = 1; i < args.length; i++) {
-            // args[0]: 哈希方法
+            // args[0]: 哈希算法
             // args[i]: 文件名
             // 生成文件：拿SHA-1举例，去除其横线，并转换为小写
-            try {
-                String hash = HashUtils.getFileHash(args[0], new File(args[i])); // 解析的哈希值
-                // SHA-256 of file abc.jar is xxxxxxxx
-                System.out.printf("%s of file \"%s\" is %s\n", args[0], args[i], hash);
-                String newFile = args[i] + "." + args[0].replace("-", "").toLowerCase(); // 创建的文件
-                File file = new File(newFile); // 创建的文件
-                if (!file.exists()) {
-                    try {
-                        file.createNewFile();
-                    } catch (IOException ignored) {
+            final boolean[] anyone = {false};
+            String algorithm = args[0];
+            if (args[1].contains("?") || args[1].contains("*")) { // 包含通配符
+                // 仅在当前目录下查找
+                Pattern pattern = RegexUtils.parseWildcard(args[i]);
+                FileUtils.forEachAllFiles(new File(""), f -> {
+                    if (pattern.matcher(f.getPath()).matches()) {
+                        if (FileUtils.hashAndWrite(f.toPath(), algorithm)) {
+                            anyone[0] = true;
+                        }
                     }
+                });
+            } else {
+                if (FileUtils.hashAndWrite(Path.of(args[i]), algorithm)) {
+                    anyone[0] = true;
                 }
-                try (PrintWriter pw = new PrintWriter(file)) {
-                    // 不要换行
-                    pw.print(hash);
-                    pw.flush();
-                } catch (IOException ex) {
-                    // Cannot write file "abc.jar.sha1": java.io.IOException......
-                    System.err.printf("Cannot write file \"%s\": %s\n", newFile, ex);
-                    System.err.println("Skipped");
-                }
-            } catch (NoSuchAlgorithmException e) {
-                // No Algorithm named SHA-123
-                System.err.printf("No Algorithm named \"%s\"\n", args[0]);
-                System.exit(-1);
-                return;
-            } catch (IOException e) {
-                // Cannot open file "abc.jar": java.io.FileNotFoundException......
-                System.err.printf("Cannot open file \"%s\": %s\n", args[1], e);
-                System.err.println("Skipped");
+            }
+
+            if (!anyone[0]) {
+                System.err.println("Cannot hash file \"" + args[i] + "\"");
             }
         }
 
