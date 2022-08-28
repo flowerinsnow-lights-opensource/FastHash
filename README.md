@@ -14,4 +14,4 @@ java -jar FashHash-1.0-SNAPSHOT SHA-1 abc.jar def.zip
 ```shell
 sha256 abc.jar def.zip
 ```
-See [sha256.c](https://github.com/flowerinsnowdh/FastHash/src/main/c/sha256.c)
+See [sha256.c](https://github.com/flowerinsnowdh/FastHash/blob/1.0-SNAPSHOT/src/main/c/sha256.c)
