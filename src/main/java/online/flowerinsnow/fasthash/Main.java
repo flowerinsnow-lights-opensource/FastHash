@@ -24,6 +24,8 @@ public class Main {
             // 生成文件：拿SHA-1举例，去除其横线，并转换为小写
             try {
                 String hash = HashUtils.getFileHash(args[0], new File(args[i])); // 解析的哈希值
+                // SHA-256 of file abc.jar is xxxxxxxx
+                System.out.printf("%s of file \"%s\" is %s\n", args[0], args[i], hash);
                 String newFile = args[i] + "." + args[0].replace("-", "").toLowerCase(); // 创建的文件
                 File file = new File(newFile); // 创建的文件
                 if (!file.exists()) {
